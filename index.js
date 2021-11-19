@@ -8,6 +8,5 @@ fetchMyIP(
     }
 
     console.log("It worked! Returned IP:", ip);
-    console.log(typeof ip);
   }
 );
