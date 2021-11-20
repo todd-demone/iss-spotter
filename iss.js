@@ -8,7 +8,7 @@ const request = require('request');
 const fetchMyIP = function(callback) {
   request(
     'https://api.ipify.org?format=json',
-    function(error, response, body) {
+    (error, response, body) => {
       if (error) {
         callback(error, null);
         return;
@@ -34,7 +34,7 @@ const fetchMyIP = function(callback) {
 const fetchCoordsByIP = function(ip, callback) {
   request(
     `https://api.freegeoip.app/json/${ip}?apikey=4f548b80-4970-11ec-ba35-750e9fae5d6b`,
-    function(error, response, body) {
+    (error, response, body) => {
       if (error) {
         callback(error, null);
         return;
@@ -65,7 +65,7 @@ const fetchCoordsByIP = function(ip, callback) {
 const fetchISSFlyOverTimes = function(coords, callback) {
   request(
     `https://iss-pass.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`,
-    function(error, response, body) {
+    (error, response, body) => {
       if (error) {
         callback(error, null);
         return;
@@ -82,4 +82,43 @@ const fetchISSFlyOverTimes = function(coords, callback) {
   );
 };
 
-module.exports = { fetchISSFlyOverTimes };
+/**
+ * Get the next 5 fly over times of the International Space Station for the location of this computer.
+ * Also provides the duration of each flyover.
+ * @param {Function} callback A callback to pass an error or the array of resulting data.
+ * Returns, via callback:
+ * - an error, if any (nullable)
+ * - the fly over times as an array of objects (null if error). Example:
+ *      [ { risetime: 134564234, duration: 600 }, ... ]
+ */
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP(
+    (error, ip) => {
+      if (error) {
+        callback(error, null);
+        return;
+      }
+      fetchCoordsByIP(
+        ip,
+        (error, coords) => {
+          if (error) {
+            callback(error, null);
+            return;
+          }
+          fetchISSFlyOverTimes(
+            coords,
+            (error, passTimes) => {
+              if (error) {
+                callback(error, null);
+                return;
+              }
+              callback(null, passTimes);
+            }
+          );
+        }
+      );
+    }
+  );
+};
+
+module.exports = { nextISSTimesForMyLocation };
